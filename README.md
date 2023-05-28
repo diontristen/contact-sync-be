@@ -41,6 +41,12 @@ This repository is for learning purposes only.
 
 Node Version: `v18.12.1`
 
+You also need to create your Mailchimp Api Key : [Mailchimp Api Key](https://us21.admin.mailchimp.com/account/api/)
+
+Then make sure to modify your Audience Fields:
+![Screenshot](audience_field.png)
+
+
 
 ## Getting Started
 
