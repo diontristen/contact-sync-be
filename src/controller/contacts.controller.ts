@@ -40,7 +40,7 @@ const FIELDS = [
  * @returns 
  */
 export const getContacts = async (page?: string, limit?: string, sort?: string): Promise<GetContactResponse> => {
-   
+
     const response = await mailchimp.lists.getListMembersInfo(listId, {
         count: Number(limit) ?? ITEM_PER_PAGE,
         offset: ((Number(page) - 1) * ITEM_PER_PAGE) ?? PAGE,
@@ -49,7 +49,7 @@ export const getContacts = async (page?: string, limit?: string, sort?: string):
         fields: FIELDS
     });
     const members: Member[] = response?.members ?? []
-    const totalItems: number =response?.total_items ?? 0
+    const totalItems: number = response?.total_items ?? 0
     const totalPages: number = Math.ceil(response?.total_items / ITEM_PER_PAGE) ?? 1
     return {
         members,
@@ -124,12 +124,17 @@ export const deleteContact = async (email: string) => {
  */
 export const addContactsByCsv = async (request: Request, res: Response) => {
     try {
-        const response = await batchAddFromCsv(request, res)
+        if (!(request as MulterRequest).file) {
+            res.status(400).json({ error: 'No file uploaded' });
+            return
+        }
+        const response = await batchAddFromCsv(request)
         res.status(200).json({
             new_members: response.new_members,
             updated_members: response.updated_members,
             failed_members: response.errors
         })
+        return
     } catch (error: any) {
         const errorMessage = error?.response?.text || error?.detail || error?.message || 'Failed to fetch data'
         res.status(500).json({ error: errorMessage })
@@ -137,7 +142,9 @@ export const addContactsByCsv = async (request: Request, res: Response) => {
 }
 
 export const replaceContactsByCsv = async (request: Request, res: Response) => {
-
+    if (!(request as MulterRequest).file) {
+        res.status(400).json({ error: 'No file uploaded' });
+    }
     const memberResponse = await mailchimp.lists.getListMembersInfo(listId, {
         count: MAX_CONTACT_LIST,
         fields: ['members.email_address']
@@ -157,7 +164,7 @@ export const replaceContactsByCsv = async (request: Request, res: Response) => {
         operations: operations,
     });
     const batchId = batch?.id
-    const endTime = Date.now() + 5000;
+    const endTime = Date.now() + 10000;
     const scanning = setInterval(async () => {
         const response = await mailchimp.batches.status(batchId);
         const status = response?.status ?? 'pending'
@@ -167,7 +174,7 @@ export const replaceContactsByCsv = async (request: Request, res: Response) => {
         }
     }, 1000)
 
-    const response = await batchAddFromCsv(request, res)
+    const response = await batchAddFromCsv(request)
     res.status(200).json({
         new_members: response.new_members,
         updated_members: response.updated_members,
@@ -284,11 +291,7 @@ const getContactData = (data: ContactBody): GetContactDataReturn => {
 }
 
 
-const batchAddFromCsv = async (request, res): Promise<BatchOperationReturn> => {
-    if (!(request as MulterRequest).file) {
-        res.status(400).json({ error: 'No file uploaded' });
-    }
-
+const batchAddFromCsv = async (request): Promise<BatchOperationReturn> => {
     const fileBuffer: string = (request as MulterRequest).file.buffer.toString();
     const csvParser = csvtojson();
 
