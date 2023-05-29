@@ -17,12 +17,11 @@ const firstName2 = faker.person.firstName();
 const lastName2 = faker.person.firstName();
 const phoneNumber2 = faker.phone.number();
 
-const testAddCsvEmail = 'testunit@gmail.com'
+const testAddCsvEmail = 'everyunit@gmail.com'
 const testUpdateCsvName = 'Unit Update'
 
 describe("POST /v1/contacts", function () {
     after(async () => {
-        // Delete the uploaded file using the uploadedFileId
         if (testAddCsvEmail) {
             await request(app).delete(`/v1/contacts/${email2}`).send()
         }
@@ -42,7 +41,7 @@ describe("POST /v1/contacts", function () {
         expect(response.body.merge_fields).to.deep.include({ PHONE: phoneNumber });
         expect(response.body.merge_fields).to.deep.include({ ADDR1: address });
     });
-    it("should be able to add contacts even without a required field", async () => {
+    it("should be able to add contacts with jsut the required field", async () => {
         const response = await request(app).post("/v1/contacts").send({
             email: email2,
             first_name: firstName2,
@@ -157,7 +156,7 @@ describe("DELETE /v1/contacts", function () {
 });
 
 describe("POST /v1/contacts/csv", function () {
-    this.afterAll(async () => {
+    after(async () => {
         // Delete the uploaded file using the uploadedFileId
         if (testAddCsvEmail) {
             await request(app).delete(`/v1/contacts/${testAddCsvEmail}`).send()
@@ -177,7 +176,6 @@ describe("POST /v1/contacts/csv", function () {
             .post(`/v1/contacts/csv`)
             .field('Content-Type', 'text/csv')
             .attach('file', fs.readFileSync(testAddCsvFile), 'sample.csv');
-        console.log(response)
         expect(response.status).to.equal(200);
         expect(response.body).to.have.own.property('new_members');
         expect(response.body).to.have.own.property('updated_members');
@@ -216,20 +214,12 @@ describe("POST /v1/contacts/csv", function () {
         expect(response.body.new_members).to.be.an('array');
         expect(response.body.updated_members).to.be.an('array');
         expect(response.body.failed_members).to.be.an('array');
-        expect(response.body.failed_members[0]).to.deep.include({ field_message: 'This value should not be blank.' });
         expect(response.body.failed_members[0]).to.deep.include({ field: 'email_address' });
+        expect(response.body.failed_members[0]).to.deep.include({ field_message: 'This value should not be blank.' });
     });
 });
 
-
 describe("POST /v1/contacts/csv/replace", function () {
-    after(async () => {
-        const testAddCsvFile = path.join(__dirname, './default_contact.csv')
-        await request(app)
-            .post(`/v1/contacts/csv/replace`)
-            .field('Content-Type', 'text/csv')
-            .attach('file', fs.readFileSync(testAddCsvFile), 'sample.csv');
-    })
     it("should not be able add without uploading a csv file", async () => {
         const response = await request(app)
             .post(`/v1/contacts/csv/replace`)
@@ -252,9 +242,9 @@ describe("POST /v1/contacts/csv/replace", function () {
         expect(response.body.new_members).to.have.lengthOf(3);
         expect(response.body.updated_members).to.be.an('array');
         expect(response.body.failed_members).to.be.an('array');
-        expect(response.body.new_members[0]).to.deep.include({ email_address: 'testunit1@gmail.com' });
-        expect(response.body.new_members[1]).to.deep.include({ email_address: 'testunit1@gmail.com' });
-        expect(response.body.new_members[2]).to.deep.include({ email_address: 'testunit1@gmail.com' });
+        expect(response.body.new_members[0]).to.deep.include({ email_address: 'everyunit1@gmail.com' });
+        expect(response.body.new_members[1]).to.deep.include({ email_address: 'everyunit2@gmail.com' });
+        expect(response.body.new_members[2]).to.deep.include({ email_address: 'everyunit3@gmail.com' });
     });
 });
 
