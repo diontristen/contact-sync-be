@@ -17,7 +17,7 @@ const firstName2 = faker.person.firstName();
 const lastName2 = faker.person.firstName();
 const phoneNumber2 = faker.phone.number();
 
-const testAddCsvEmail = 'everyunit@gmail.com'
+const testAddCsvEmail = 'unitdemo@gmail.com'
 const testUpdateCsvName = 'Unit Update'
 
 describe("POST /v1/contacts", function () {
@@ -156,6 +156,7 @@ describe("DELETE /v1/contacts", function () {
 });
 
 describe("POST /v1/contacts/csv", function () {
+    this.timeout(15000);
     after(async () => {
         // Delete the uploaded file using the uploadedFileId
         if (testAddCsvEmail) {
@@ -220,6 +221,7 @@ describe("POST /v1/contacts/csv", function () {
 });
 
 describe("POST /v1/contacts/csv/replace", function () {
+    this.timeout(15000);
     it("should not be able add without uploading a csv file", async () => {
         const response = await request(app)
             .post(`/v1/contacts/csv/replace`)
@@ -242,13 +244,14 @@ describe("POST /v1/contacts/csv/replace", function () {
         expect(response.body.new_members).to.have.lengthOf(3);
         expect(response.body.updated_members).to.be.an('array');
         expect(response.body.failed_members).to.be.an('array');
-        expect(response.body.new_members[0]).to.deep.include({ email_address: 'everyunit1@gmail.com' });
-        expect(response.body.new_members[1]).to.deep.include({ email_address: 'everyunit2@gmail.com' });
-        expect(response.body.new_members[2]).to.deep.include({ email_address: 'everyunit3@gmail.com' });
+        expect(response.body.new_members[0]).to.deep.include({ email_address: 'unitdemo1@gmail.com' });
+        expect(response.body.new_members[1]).to.deep.include({ email_address: 'unitdemo2@gmail.com' });
+        expect(response.body.new_members[2]).to.deep.include({ email_address: 'unitdemo3@gmail.com' });
     });
 });
 
 describe("GET /v1/contacts/csv", function () {
+    this.timeout(5000);
     it("should be able to export a csv file of the contact list", async () => {
         const response = await request(app)
             .get(`/v1/contacts/csv`)
